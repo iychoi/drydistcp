@@ -242,10 +242,8 @@ public class CopyMapper extends Mapper<Text, CopyListingFileStatus, Text, Text> 
             }
 
             if (sourceCurrStatus.isDirectory()) {
-                if (!dryrun) {
-                    createTargetDirsWithRetry(description, target, context);
-                    return;
-                }
+                createTargetDirsWithRetry(description, target, context);
+                return;
             }
 
             FileAction action = checkUpdate(sourceFS, sourceCurrStatus, target);
@@ -296,13 +294,15 @@ public class CopyMapper extends Mapper<Text, CopyListingFileStatus, Text, Text> 
         incrementCounter(context, Counter.COPY, 1);
     }
 
-    private void createTargetDirsWithRetry(String description,
-            Path target, Context context) throws IOException {
-        try {
-            new RetriableDirectoryCreateCommand(description).execute(target, context);
-        } catch (Exception e) {
-            throw new IOException("mkdir failed for " + target, e);
+    private void createTargetDirsWithRetry(String description, Path target, Context context) throws IOException {
+        if(!dryrun) {
+            try {
+                new RetriableDirectoryCreateCommand(description).execute(target, context);
+            } catch (Exception e) {
+                throw new IOException("mkdir failed for " + target, e);
+            }
         }
+        
         incrementCounter(context, Counter.COPY, 1);
     }
 

@@ -75,14 +75,12 @@ public class RetriableFileCopyCommand extends RetriableCommand {
      * @param action We should overwrite the target file or append new data to
      * it.
      */
-    public RetriableFileCopyCommand(boolean skipCrc, String description,
-            FileAction action) {
+    public RetriableFileCopyCommand(boolean skipCrc, String description, FileAction action) {
         this(description, action);
         this.skipCrc = skipCrc;
     }
     
-    public RetriableFileCopyCommand(boolean dryrun, boolean skipCrc, String description,
-            FileAction action) {
+    public RetriableFileCopyCommand(boolean dryrun, boolean skipCrc, String description, FileAction action) {
         this(description, action);
         this.dryrun = dryrun;
         this.skipCrc = skipCrc;
@@ -126,10 +124,8 @@ public class RetriableFileCopyCommand extends RetriableCommand {
                     .contains(FileAttribute.CHECKSUMTYPE) ? sourceFS
                     .getFileChecksum(sourcePath) : null;
 
-            final long offset = action == FileAction.APPEND ? targetFS.getFileStatus(
-                    target).getLen() : 0;
-            long bytesRead = copyToFile(targetPath, targetFS, sourceFileStatus,
-                    offset, context, fileAttributes, sourceChecksum);
+            final long offset = action == FileAction.APPEND ? targetFS.getFileStatus(target).getLen() : 0;
+            long bytesRead = copyToFile(targetPath, targetFS, sourceFileStatus, offset, context, fileAttributes, sourceChecksum);
 
             if (!dryrun) {
                 compareFileLengths(sourceFileStatus, targetPath, configuration, bytesRead
@@ -174,11 +170,13 @@ public class RetriableFileCopyCommand extends RetriableCommand {
     }
 
     private long copyToFile(Path targetPath, FileSystem targetFS, FileStatus sourceFileStatus, long sourceOffset, Mapper.Context context, EnumSet<FileAttribute> fileAttributes, final FileChecksum sourceChecksum) throws IOException {
-        FsPermission permission = FsPermission.getFileDefault().applyUMask(FsPermission.getUMask(targetFS.getConf()));
-        final OutputStream outStream;
         if (dryrun) {
             return drainBytes(sourceFileStatus, sourceOffset, BUFFER_SIZE, context);
         } else {
+            FsPermission permission = FsPermission.getFileDefault().applyUMask(FsPermission.getUMask(targetFS.getConf()));
+        
+            final OutputStream outStream;
+        
             if (action == FileAction.OVERWRITE) {
                 final short repl = getReplicationFactor(fileAttributes, sourceFileStatus, targetFS, targetPath);
                 final long blockSize = getBlockSize(fileAttributes, sourceFileStatus, targetFS, targetPath);
@@ -244,9 +242,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
     }
 
     @VisibleForTesting
-    long copyBytes(FileStatus sourceFileStatus, long sourceOffset,
-            OutputStream outStream, int bufferSize, Mapper.Context context)
-            throws IOException {
+    long copyBytes(FileStatus sourceFileStatus, long sourceOffset, OutputStream outStream, int bufferSize, Mapper.Context context) throws IOException {
         Path source = sourceFileStatus.getPath();
         byte buf[] = new byte[bufferSize];
         ThrottledInputStream inStream = null;
